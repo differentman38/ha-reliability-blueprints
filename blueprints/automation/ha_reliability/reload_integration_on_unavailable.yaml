@@ -1,0 +1,59 @@
+blueprint:
+  name: Recharger une intégration quand une entité devient indisponible
+  description: >
+    Certaines intégrations (PRONOTE, Frigate, prévisions météo, caméras cloud…) voient
+    leur coordinateur « décrocher » : l'entrée reste chargée mais les capteurs passent
+    en `unavailable`, sans erreur. Ce blueprint surveille une **entité témoin** : si elle
+    reste indisponible pendant une durée donnée, il **recharge automatiquement** son
+    intégration (`homeassistant.reload_config_entry`). En option, si le rechargement ne
+    suffit pas, il exécute les actions de votre choix (notification, etc.).
+
+
+    Idéal pour les migrants Jeedom : on retrouve la robustesse « ça se répare tout seul ».
+  domain: automation
+  author: differentman38
+  source_url: https://github.com/differentman38/ha-reliability-blueprints/blob/main/blueprints/automation/ha_reliability/reload_integration_on_unavailable.yaml
+  input:
+    sentinel_entity:
+      name: Entité témoin
+      description: L'entité dont la disponibilité reflète la santé de l'intégration.
+      selector:
+        entity: {}
+    unavailable_for:
+      name: Indisponible depuis
+      description: Durée d'indisponibilité continue avant rechargement (absorbe redémarrages et coupures passagères).
+      default: { hours: 2 }
+      selector:
+        duration: {}
+    recheck_delay:
+      name: Délai de re-vérification
+      description: Temps d'attente après le rechargement avant de vérifier si c'est revenu.
+      default: { seconds: 60 }
+      selector:
+        duration: {}
+    failure_actions:
+      name: Actions si toujours indisponible (optionnel)
+      description: Exécutées seulement si l'entité est encore indisponible après le rechargement.
+      default: []
+      selector:
+        action: {}
+
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: state
+    entity_id: !input sentinel_entity
+    to: "unavailable"
+    for: !input unavailable_for
+
+actions:
+  - action: homeassistant.reload_config_entry
+    target:
+      entity_id: !input sentinel_entity
+  - delay: !input recheck_delay
+  - if:
+      - condition: state
+        entity_id: !input sentinel_entity
+        state: "unavailable"
+    then: !input failure_actions

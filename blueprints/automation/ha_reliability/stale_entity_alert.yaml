@@ -1,0 +1,55 @@
+blueprint:
+  name: Alerte quand une entité ne communique plus (capteur muet)
+  description: >
+    Surveille une entité et prévient quand elle **n'a plus changé d'état depuis trop
+    longtemps** (capteur Zigbee muet, pile bloquée, pont HS…) ou qu'elle est devenue
+    indisponible. Vérification périodique, anti-rebond intégré. Vous choisissez les
+    actions d'alerte (notification, lumière, TTS…).
+  domain: automation
+  author: differentman38
+  source_url: https://github.com/differentman38/ha-reliability-blueprints/blob/main/blueprints/automation/ha_reliability/stale_entity_alert.yaml
+  input:
+    watched_entity:
+      name: Entité surveillée
+      selector:
+        entity: {}
+    max_age:
+      name: Silence maximal toléré
+      description: Au-delà de cette durée sans mise à jour, l'entité est considérée muette.
+      default: { hours: 6 }
+      selector:
+        duration: {}
+    check_every:
+      name: Fréquence de vérification
+      description: 'Motif de minutes façon cron. « /15 » = toutes les 15 min, « /5 » = toutes les 5 min.'
+      default: "/15"
+      selector:
+        text: {}
+    alert_actions:
+      name: Actions d'alerte
+      description: Exécutées quand l'entité est muette (une seule fois par épisode).
+      default: []
+      selector:
+        action: {}
+
+variables:
+  ent: !input watched_entity
+  age: !input max_age
+  max_seconds: >-
+    {{ (age.days | default(0))*86400 + (age.hours | default(0))*3600
+       + (age.minutes | default(0))*60 + (age.seconds | default(0)) }}
+
+mode: single
+max_exceeded: silent
+
+triggers:
+  - trigger: time_pattern
+    minutes: !input check_every
+
+conditions:
+  - condition: template
+    value_template: >-
+      {{ is_state(ent, 'unavailable')
+         or (now() - states[ent].last_changed).total_seconds() | int > max_seconds | int }}
+
+actions: !input alert_actions
