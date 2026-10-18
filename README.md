@@ -1,8 +1,8 @@
 # 🛟 Blueprints de fiabilité pour Home Assistant
 
-Deux automatisations prêtes à l'emploi pour rendre Home Assistant **plus robuste** —
-pensées notamment pour celles et ceux qui **migrent de Jeedom** et veulent retrouver le
-réflexe « ça se répare tout seul ».
+Deux automatisations prêtes à l'emploi pour rendre Home Assistant **plus robuste** :
+que ça « se répare tout seul » quand une intégration décroche, et qu'on soit prévenu
+quand un capteur ne communique plus.
 
 ## Recharger une intégration quand une entité devient indisponible
 

@@ -7,9 +7,6 @@ blueprint:
     reste indisponible pendant une durée donnée, il **recharge automatiquement** son
     intégration (`homeassistant.reload_config_entry`). En option, si le rechargement ne
     suffit pas, il exécute les actions de votre choix (notification, etc.).
-
-
-    Idéal pour les migrants Jeedom : on retrouve la robustesse « ça se répare tout seul ».
   domain: automation
   author: differentman38
   source_url: https://github.com/differentman38/ha-reliability-blueprints/blob/main/blueprints/automation/ha_reliability/reload_integration_on_unavailable.yaml
